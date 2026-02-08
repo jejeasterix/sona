@@ -87,7 +87,7 @@ func TestBuildVerboseJSON(t *testing.T) {
 		{Start: 0, End: 250, Text: "Hello"},
 		{Start: 250, End: 510, Text: " world"},
 	}
-	v := buildVerboseJSON(segments)
+	v := buildVerboseJSON(segments, nil)
 	if v.Text != "Hello world" {
 		t.Errorf("Text = %q, want %q", v.Text, "Hello world")
 	}

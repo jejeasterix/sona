@@ -172,7 +172,17 @@ func (s *Server) handleTranscription(w http.ResponseWriter, r *http.Request) {
 	stream := parseBoolFormValue(r.FormValue("stream"))
 
 	if stream {
-		s.handleStreamingTranscription(w, r, samples, opts)
+		// Run diarization before streaming so speaker labels are available for each segment.
+		var diarStreamSegments []diarize.Segment
+		if diarizeModel != "" && tempAudioPath != "" {
+			segs, dErr := diarize.Diarize(diarizeModel, tempAudioPath)
+			if dErr != nil {
+				log.Printf("diarization failed (streaming without speakers): %v", dErr)
+			} else {
+				diarStreamSegments = segs
+			}
+		}
+		s.handleStreamingTranscription(w, r, samples, opts, diarStreamSegments)
 		return
 	}
 
@@ -226,7 +236,7 @@ func (s *Server) handleTranscription(w http.ResponseWriter, r *http.Request) {
 
 // handleStreamingTranscription writes newline-delimited JSON events
 // as segments and progress updates arrive during transcription.
-func (s *Server) handleStreamingTranscription(w http.ResponseWriter, r *http.Request, samples []float32, opts whisper.TranscribeOptions) {
+func (s *Server) handleStreamingTranscription(w http.ResponseWriter, r *http.Request, samples []float32, opts whisper.TranscribeOptions, diarSegments []diarize.Segment) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		writeError(w, http.StatusInternalServerError, "streaming not supported")
@@ -255,12 +265,18 @@ func (s *Server) handleStreamingTranscription(w http.ResponseWriter, r *http.Req
 			flusher.Flush()
 		},
 		OnSegment: func(seg whisper.Segment) {
-			enc.Encode(map[string]any{
+			event := map[string]any{
 				"type":  "segment",
 				"start": csToSeconds(seg.Start),
 				"end":   csToSeconds(seg.End),
 				"text":  seg.Text,
-			})
+			}
+			if diarSegments != nil {
+				if sp := matchSpeaker(csToSeconds(seg.Start), csToSeconds(seg.End), diarSegments); sp >= 0 {
+					event["speaker"] = sp
+				}
+			}
+			enc.Encode(event)
 			flusher.Flush()
 		},
 		ShouldAbort: func() bool { return aborted.Load() },
