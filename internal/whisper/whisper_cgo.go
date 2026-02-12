@@ -61,6 +61,7 @@ import "C"
 
 import (
 	"fmt"
+	"os"
 	"runtime/cgo"
 	"unsafe"
 )
@@ -78,14 +79,19 @@ func SetVerbose(v bool) {
 }
 
 func New(modelPath string, gpuDevice int) (*Context, error) {
-	cPath := C.CString(modelPath)
-	defer C.free(unsafe.Pointer(cPath))
+	// Read model via Go's os.ReadFile which handles non-ASCII paths on Windows
+	// (Go uses CreateFileW internally), then pass the buffer to whisper.cpp
+	// to avoid fopen() failing on non-ASCII paths with MinGW's C runtime.
+	buf, err := os.ReadFile(modelPath)
+	if err != nil {
+		return nil, fmt.Errorf("whisper: failed to read model file %s: %w", modelPath, err)
+	}
 
 	params := C.whisper_context_default_params()
 	if gpuDevice >= 0 {
 		params.gpu_device = C.int(gpuDevice)
 	}
-	ctx := C.whisper_init_from_file_with_params(cPath, params)
+	ctx := C.whisper_init_from_buffer_with_params(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), params)
 	if ctx == nil {
 		return nil, fmt.Errorf("whisper: failed to load model from %s", modelPath)
 	}
