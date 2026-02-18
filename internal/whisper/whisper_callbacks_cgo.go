@@ -22,11 +22,11 @@ func sonaGoProgressCB(handle uintptr, progress int32) {
 }
 
 //export sonaGoSegmentCB
-func sonaGoSegmentCB(handle uintptr, ctxPtr uintptr, nNew int32) {
+func sonaGoSegmentCB(handle uintptr, ctxPtr unsafe.Pointer, nNew int32) {
 	h := cgo.Handle(handle)
 	cb := h.Value().(*StreamCallbacks)
 	if cb.OnSegment != nil {
-		ctx := (*C.struct_whisper_context)(unsafe.Pointer(ctxPtr))
+		ctx := (*C.struct_whisper_context)(ctxPtr)
 		nSegments := int(C.whisper_full_n_segments(ctx))
 		for i := nSegments - int(nNew); i < nSegments; i++ {
 			seg := Segment{
