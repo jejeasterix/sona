@@ -13,11 +13,23 @@ type docsTranscriptionForm struct {
 	File           huma.FormFile `form:"file"`
 	Language       string        `form:"language"`
 	Prompt         string        `form:"prompt"`
-	DetectLanguage string        `form:"detect_language"`
-	EnhanceAudio   string        `form:"enhance_audio"`
+	DetectLanguage bool          `form:"detect_language"`
+	EnhanceAudio   bool          `form:"enhance_audio"`
 	ResponseFormat string        `form:"response_format"`
-	Stream         string        `form:"stream"`
+	Stream         bool          `form:"stream"`
 	Model          string        `form:"model"`
+	BeamSize       int           `form:"beam_size"`
+	BestOf         int           `form:"best_of"`
+	DiarizeModel   string        `form:"diarize_model"`
+	MaxSegLen      int           `form:"max_segment_len"`
+	MaxTextCtx     int           `form:"max_text_ctx"`
+	NThreads       int           `form:"n_threads"`
+	SamplingStrat  string        `form:"sampling_strategy"`
+	StabTimestamps bool          `form:"stable_timestamps"`
+	Temperature    float32       `form:"temperature"`
+	Translate      bool          `form:"translate"`
+	VadModel       string        `form:"vad_model"`
+	WordTimestamps bool          `form:"word_timestamps"`
 }
 
 type docsTranscriptionInput struct {
