@@ -12,18 +12,21 @@ jobs:
       fail-fast: false
       matrix:
         # macos-arm64, macos-x86_64, linux-x86_64, linux-arm64, windows-x86_64
-        runner: [macos-14, macos-15-intel, ubuntu-22.04, ubuntu-22.04-arm, windows-latest]
+        runner: [macos-14, macos-15-intel, ubuntu-22.04, ubuntu-24.04-arm, windows-latest]
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - name: Install Vulkan deps (Linux)
-        if: runner.os == 'Linux'
+      - name: Install Vulkan deps (Linux x86_64)
+        if: runner.os == 'Linux' && runner.arch == 'X64'
         run: |
           # glslc/libshaderc-dev are not in Ubuntu 22.04 standard repos; install via LunarG Vulkan SDK
           wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
           sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
           sudo apt-get update -qq && sudo apt-get install -y -qq vulkan-sdk glslang-tools
+      - name: Install Vulkan deps (Linux ARM64)
+        if: runner.os == 'Linux' && runner.arch == 'ARM64'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libvulkan-dev glslang-tools glslc libshaderc-dev
       - name: Install Vulkan deps (Windows)
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
