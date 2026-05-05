@@ -73,10 +73,11 @@ func formatVTT(segments []whisper.Segment) string {
 
 // verboseSegment is the JSON representation of a segment in verbose_json format.
 type verboseSegment struct {
-	Start   float64 `json:"start"`
-	End     float64 `json:"end"`
-	Text    string  `json:"text"`
-	Speaker *int    `json:"speaker,omitempty"`
+	Start        float64 `json:"start"`
+	End          float64 `json:"end"`
+	Text         string  `json:"text"`
+	Speaker      *int    `json:"speaker,omitempty"`
+	NoSpeechProb float32 `json:"no_speech_prob"`
 }
 
 // verboseJSON is the response body for response_format=verbose_json.
@@ -93,9 +94,10 @@ func buildVerboseJSON(segments []whisper.Segment, diarSegments []diarize.Segment
 	vSegs := make([]verboseSegment, len(segments))
 	for i, seg := range segments {
 		vSegs[i] = verboseSegment{
-			Start: csToSeconds(seg.Start),
-			End:   csToSeconds(seg.End),
-			Text:  seg.Text,
+			Start:        csToSeconds(seg.Start),
+			End:          csToSeconds(seg.End),
+			Text:         seg.Text,
+			NoSpeechProb: seg.NoSpeechProb,
 		}
 		if diarSegments != nil {
 			if sp := matchSpeaker(csToSeconds(seg.Start), csToSeconds(seg.End), diarSegments); sp >= 0 {
