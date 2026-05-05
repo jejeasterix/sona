@@ -153,9 +153,10 @@ func collectSegments(ctx *C.struct_whisper_context) []Segment {
 	segments := make([]Segment, nSegments)
 	for i := 0; i < nSegments; i++ {
 		segments[i] = Segment{
-			Start: int64(C.whisper_full_get_segment_t0(ctx, C.int(i))),
-			End:   int64(C.whisper_full_get_segment_t1(ctx, C.int(i))),
-			Text:  C.GoString(C.whisper_full_get_segment_text(ctx, C.int(i))),
+			Start:        int64(C.whisper_full_get_segment_t0(ctx, C.int(i))),
+			End:          int64(C.whisper_full_get_segment_t1(ctx, C.int(i))),
+			Text:         C.GoString(C.whisper_full_get_segment_text(ctx, C.int(i))),
+			NoSpeechProb: float32(C.whisper_full_get_segment_no_speech_prob(ctx, C.int(i))),
 		}
 	}
 	return segments
