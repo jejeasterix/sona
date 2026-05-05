@@ -308,10 +308,11 @@ func (s *Server) handleStreamingTranscription(w http.ResponseWriter, r *http.Req
 		},
 		OnSegment: func(seg whisper.Segment) {
 			event := map[string]any{
-				"type":  "segment",
-				"start": csToSeconds(seg.Start),
-				"end":   csToSeconds(seg.End),
-				"text":  seg.Text,
+				"type":           "segment",
+				"start":          csToSeconds(seg.Start),
+				"end":            csToSeconds(seg.End),
+				"text":           seg.Text,
+				"no_speech_prob": seg.NoSpeechProb,
 			}
 			if diarSegments != nil {
 				if sp := matchSpeaker(csToSeconds(seg.Start), csToSeconds(seg.End), diarSegments); sp >= 0 {
