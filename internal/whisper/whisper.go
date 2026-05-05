@@ -28,9 +28,10 @@ type TranscribeOptions struct {
 
 // Segment represents a transcribed text segment with timestamps.
 type Segment struct {
-	Start int64 // start time in centiseconds (10ms units)
-	End   int64 // end time in centiseconds (10ms units)
-	Text  string
+	Start        int64   // start time in centiseconds (10ms units)
+	End          int64   // end time in centiseconds (10ms units)
+	Text         string
+	NoSpeechProb float32 // whisper per-segment "non-speech" probability, in [0.0, 1.0]
 }
 
 // TranscribeResult holds the output of a transcription.
