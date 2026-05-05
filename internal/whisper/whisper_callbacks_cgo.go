@@ -30,9 +30,10 @@ func sonaGoSegmentCB(handle uintptr, ctxPtr unsafe.Pointer, nNew int32) {
 		nSegments := int(C.whisper_full_n_segments(ctx))
 		for i := nSegments - int(nNew); i < nSegments; i++ {
 			seg := Segment{
-				Start: int64(C.whisper_full_get_segment_t0(ctx, C.int(i))),
-				End:   int64(C.whisper_full_get_segment_t1(ctx, C.int(i))),
-				Text:  C.GoString(C.whisper_full_get_segment_text(ctx, C.int(i))),
+				Start:        int64(C.whisper_full_get_segment_t0(ctx, C.int(i))),
+				End:          int64(C.whisper_full_get_segment_t1(ctx, C.int(i))),
+				Text:         C.GoString(C.whisper_full_get_segment_text(ctx, C.int(i))),
+				NoSpeechProb: float32(C.whisper_full_get_segment_no_speech_prob(ctx, C.int(i))),
 			}
 			cb.OnSegment(seg)
 		}
