@@ -1,0 +1,44 @@
+name: Monitor sona PR #17
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # 09:00 UTC tous les jours
+  workflow_dispatch:     # Permet de déclencher manuellement
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install nodemailer
+
+      - name: Monitor PR and send email
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GMAIL_USER: jejeasterix@gmail.com
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
+          EMAIL_TO: jerome.denis@videosynergie.com
+        run: node monitor-sona-pr.js
+
+      - name: Commit state changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .sona-pr-state.json || true
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update sona PR monitoring state"
+        continue-on-error: true
+
+      - name: Push changes
+        run: git push
+        continue-on-error: true
